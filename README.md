@@ -6,6 +6,10 @@ Group Assignment base repository for the Data Driven Security subject of the [Cy
 
 Brief description of the project.
 
+### Members
+  - Oriol Mominó Villegas
+  - Alicia Ruiz Tovar
+
 ### Requirements
 
   - Requirement 1
