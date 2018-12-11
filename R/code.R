@@ -11,6 +11,9 @@ sample_function <- function() {
 
 # Libraries
 library(dplyr)
+library(ggplot2)
+library(maps)
+library(ggthemes)
 
 filepath <- 'dataset/marx-geo.csv'
 
@@ -32,3 +35,5 @@ cc2 <- data.frame(clean_coordinates %>% filter(latitude<=90))
 cc2 <- data.frame(cc2 %>% filter(latitude>=-90))
 cc2 <- data.frame(cc2 %>% filter(longitude<=180))
 cc2 <- data.frame(cc2 %>% filter(longitude>=-180))
+
+world <- ggplot() + borders("world", colour="#D7D7D7", fill="#CBCBCB") + theme_map()
