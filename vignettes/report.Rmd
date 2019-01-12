@@ -13,56 +13,191 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(GroupAssignmentPackage)
 #source("../R/code.R")
-GroupAssignmentPackage::sample_function()
-GroupAssignmentPackage::LoadLibraries()
+#GroupAssignmentPackage::sample_function()
+#GroupAssignmentPackage::LoadLibraries()
 #df <- getSourceData()
 #nfilas <- nrow(df)
 ```
 
-Vignettes are long form documentation commonly included in packages. Because they are part of the distribution of the package, they need to be as compact as possible. The `html_vignette` output type provides a custom style sheet (and tweaks some options) to ensure that the resulting html is as small as possible. The `nfilas` format:
+# 1. Introducción
 
-- Never uses retina figures
-- Has a smaller default figure size
-- Uses a custom CSS stylesheet instead of the default Twitter Bootstrap style
+Hoy día, en el mundo se producen cientos de miles de ciberataques cada segundo. La mayor parte de ataques que se generan no tienen ningún tipo de repercusión mediática ni social, pues la mayoría son ataques pequeños que producen pocos daños y están diseñados para afectar a personas de forma individual (por ejemplo, phising o spam); pero en esta última década cada vez más se producen ataques globales con consecuencias nefastas para empresas, gobiernos, etc.
 
-## Vignette Info
+En la siguiente tabla podemos observar un ejemplo de tres de los ataques más sonados de los últimos tiempos.
 
-Note the various macros within the `vignette` section of the metadata block above. These are required in order to instruct R how to build the vignette. Note that you should change the `title` field and the `\VignetteIndexEntry` to match the title of your vignette.
+Año de descubrimiento  | Nombre | Tipo | Descripción
+------ | ---------- | ---------- | -------------------------------------
+2017      | WannaCry    | Ransomware | Afectados >200.000 ordenadores en 150 paises
+2016      | Mirai  | Botnet | Afectados multitud de dispositivos IoT, para DDoS a servidores DNS
+2010      | Stuxnet    | Gusano | Reprogramación de sistemas SCADA
 
-## Styles
+~~En 2017 se produjo el WannaCry, ransomware que afectó a más de 200.000 ordenadores en 150 paises~~
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+~~En 2016 se hizo uso de Mirai, botnet destinada a infectar dispositivos IoT, con el fin de realizar un DDoS a servidores DNS~~
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
+~~En 2010 se descubrió el Stuxnet, gusano que era capaz de reprogramar sistemas SCADA~~
 
-## Figures
+En los últimos años se ha sospechado que hay ciertas regiones del mundo que son origen de la mayoría de ataques que se producen en el resto del planeta. Quizás si se pudiera concretar los paises que más ataques generan, se podrían tomar medidas cautelares, entre otro tipo de acciones.
 
-The figure sizes have been customised so that you can easily put two images side-by-side. 
 
-```{r, fig.show='hold'}
-plot(1:10)
-plot(10:1)
+## 1.1. Pregunta a resolver
+
+En base a esto, hemos pensado que sería interesante saber los ataques que produce cada país, para saber si hay alguno o algunos cuya cantidad de ataques sobresalga por encima de todos los demás y poder concluir si las sospechas de estos últimos años son ciertas.
+
+Por ello, la pregunta que vamos a buscar resolver en este documento es la siguiente: **¿qué países son originarios de la mayor cantidad de ciberataques a nivel mundial?**
+
+## 1.2. Dataset 
+
+Para llevar a cabo el análisis, necesitábamos un dataset que recogiese información de ataques a nivel mundial bien diferenciados por países o regiones.
+
+Finalmente, hemos encontrado este [dataset](http://datadrivensecurity.info/blog/pages/dds-dataset-collection.html) con información de 2013 sobre ataques que han captado un conjunto de AWS honeypots repartidas por el globo terrestre.
+
+
+>   A un panal de rica miel
+>
+>   dos mil moscas acudieron
+>
+>   que por golosas murieron
+>
+>   presas de patas en él.
+>
+>>  Félix María Samaniego
+
+
+# 2. Análisis
+
+## 2.1. Obtención de la información
+
+El primer paso a llevar a cabo para el análisis de la información es la descarga de los datos desde la [web](http://datadrivensecurity.info/blog/data/2014/01/marx-geo.tar.gz), junto a la posterior transformación a dataset para poder interactuar con ellos en R.
+
+```{r, include = FALSE}
+# Función/Funciones que obtengan el csv de la web, transformación a csv y obtención de dataset para poder jugar con la información.
+
+# Insert code here
+
 ```
 
-You can enable figure captions by `fig_caption: yes` in YAML:
+Tras obtener los datos, podemos ver que el dataset tiene cantidad de información útil de los ataques: fecha, hora, honeypot a la que ha atacado, ip del atacante, país del atacante y coordenadas del país.
 
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
+```{r, include = FALSE}
+# head(dataset), para mostrar un ejemplo de la estructura
 
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+# Insert code here
 
-## More Examples
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
 ```
 
-Also a quote using `>`:
+## 2.2. Honeypots
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+Concretamente, el dataset contiene información de los ataques que reciben nueve honeypots repartidos por el mundo.
+
+
+```{r, include = FALSE}
+# Tabla con las 9 honeypots
+
+# Insert code here
+
+```
+
+No tenemos información exacta de dónde se encuentran las honeypots, pero por sus nombres podemos deducir que efectivamente, está repartidas por todo el globo terrestre.
+
+El número de ataques recibidos por cada honeypot es el siguiente.
+
+```{r, include = FALSE}
+# Número de ataques recibido por cada honeypot
+
+# Insert code here
+
+```
+
+Podemos obervar que las honeypots que más ataques reciben son las 
+
+## 2.3. Países
+
+El dataset nos proporciona un listado bastante extenso sobre países del mundo en los que se originan ataques. A continuación podemos ver el listado completo:
+
+```{r, include = FALSE}
+# Tabla de todos los países atacantes (orden alfabético) y número de ataques por país
+
+# Insert code here
+
+```
+
+Los países en los que se generan más ataques son: 
+
+```{r, include = FALSE}
+# TABLA Top 10 atacantes
+# Quizás Top 10 sea mucho (se vea regular el gráfico) y haya que poner un TOP menor. O la inversa, si el TOP 11 y 12 atacan mucho, lo mismo hay que incluirlos
+#35  CN 191394
+#164 US  90005
+#84  JP  17204
+#78  IR  13042
+#160 TW  12150
+#122 NL  10739
+#76  IN   9418
+#88  KR   9316
+#170 VN   7826
+#140 RU   7211
+# Insert code here
+
+```
+
+Podemos observar que hay un atacante que está claramente en primer lugar: China. En segundo lugar nos encontramos con Estados Unidos, que también está bastante alejado del tercer puesto, Japón. En sucesivos puestos nos encontramos con Irán, Taiwan, Países Bajos, India, Corea, Vietnam y Rusia.
+
+A continuación, podemos observar un gráfico de barras con el Top 10 de atacantes:
+
+```{r, include = FALSE}
+# GRÁFICO DE BARRAS Top 10 atacantes
+# Quizás Top 10 sea mucho (se vea regular el gráfico) y haya que poner un TOP menor. O la inversa, si el TOP 11 y 12 atacan mucho, lo mismo hay que incluirlos
+#35  CN 191394
+#164 US  90005
+#84  JP  17204
+#78  IR  13042
+#160 TW  12150
+#122 NL  10739
+#76  IN   9418
+#88  KR   9316
+#170 VN   7826
+#140 RU   7211
+# Insert code here
+
+```
+
+## 2.4. Gráficos con mapa mundial
+
+Para mostrar el análisis de una forma más visual, hemos hecho uso de un mapa en blanco con todos los países del mundo perfectamente delimitados.
+
+```{r, include = FALSE}
+# Imagen del mapa en blanco, con los países delimitados
+
+# Insert code here
+
+```
+
+## 2.4.1. Mapa de puntos
+
+Gracias a que el dataset contiene información sobre las coordenadas de los atacantes, hemos podido representar sin excesiva dificultad el mapa de puntos que se muestra a continuación.
+
+```{r, include = FALSE}
+# Cualquier transformación de datos que hayas tenido que hacer desde el dataset normalizado que devuelve getSourceData hasta la obtención de este gráfico
+
+# Insert code here
+
+```
+
+
+## 2.4.2. Mapa de calor
+
+Haciendo uso de los países de los atacantes, hemos podido generar este mapa de calor. El rojo más intenso representa los países que más ataques han generado, el amarillo menos intenso representan a los que menos. Los países en blanco representan que no se ha recibido ningún ataque desde esa región.
+
+```{r, include = FALSE}
+# Cualquier transformación de datos que hayas tenido que hacer desde el dataset normalizado que devuelve getSourceData hasta la obtención de este gráfico
+
+# Insert code here
+
+```
+
+# 3. Conclusiones y preguntas futuras
+
+- Afirmar o desmentir que hay países que claramente son atacantes
+
+- Preguntas futuras: normalizar los datos para ver atacantes según población. Necesario otro dataset con
