@@ -1,32 +1,24 @@
-#' Title
-#'
-#' @details This are the details
-#' @return
-#' @export
-#'
-#' @examples
-sample_function <- function() {
-  print("Hello world")
-}
-
-#' Title
+#' Download dataset
 #'
 #' @return
 #' @export
 #'
 #' @examples
-getSourceData <- function(){
-  filepath <- '../dataset/marx-geo.csv'
-  dataset <- read.csv(file=filepath, header=TRUE, sep=',', check.names=TRUE,
-                      stringsAsFactors = FALSE,
-                      na.strings=c(""))
-  useful_vars <- c("datetime","country","latitude","longitude")
-  useful_dataset <- dataset[useful_vars]
-
-  return(useful_dataset)
+downloadDataset <- function() {
+  file_url <- "http://datadrivensecurity.info/blog/data/2014/01/marx-geo.tar.gz"
+  compressed_file <- "dataset/marx-geo.tar.gz"
+  if(!file.exists(compressed_file)) {
+    download.file(file_url,compressed_file)
+  }
+  file_name <- "dataset/marx-geo.csv"
+  if (!file.exists(file_name)) {
+    untar(compressed_file,exdir = 'dataset')
+  }
+  dataset <- read.csv(file_name,na.strings=c("","NA"))
+  return(dataset)
 }
 
-#' Remove NAs from coordinates
+#' Clean dataset
 #'
 #' @param dataset
 #'
@@ -34,8 +26,16 @@ getSourceData <- function(){
 #' @export
 #'
 #' @examples
-removaNACoordinates <- function(dataset) {
-  clean_dataset <- data.frame(dataset %>% filter(!is.na(latitude) & !is.na(longitude)))
+cleanDataset <- function(dataset) {
+  useful_vars <- c("datetime","cc","country","latitude","longitude")
+  clean_dataset <- dataset[useful_vars]
+  clean_dataset$datetime <- as.Date(clean_dataset$datetime, format = "%Y-%m-%d")
+  clean_dataset <- data.frame(clean_dataset %>% filter(!is.na(latitude) & !is.na(longitude)))
+  clean_dataset <- data.frame(clean_dataset %>% filter(!is.na(cc)))
+  clean_dataset <- data.frame(clean_dataset %>% filter(latitude<=90))
+  clean_dataset <- data.frame(clean_dataset %>% filter(latitude>=-90))
+  clean_dataset <- data.frame(clean_dataset %>% filter(longitude<=180))
+  clean_dataset <- data.frame(clean_dataset %>% filter(longitude>=-180))
   return(clean_dataset)
 }
 
@@ -48,37 +48,8 @@ removaNACoordinates <- function(dataset) {
 #'
 #' @examples
 groupCoordinates <- function(dataset) {
-  grouped_dataset <- data.frame(dataset %>% group_by(longitude,latitude) %>% summarize(times=n()))
-  return(grouped_dataset)
-}
-
-#' Remove over range coordinates
-#' @details LAT[-90:90] LONG [-180:180]
-#' @param dataset
-#'
-#' @return
-#' @export
-#'
-#' @examples
-removeOverRangeCoordinates <- function(dataset) {
-  clean_dataset <- data.frame(dataset %>% filter(latitude<=90))
-  clean_dataset <- data.frame(clean_dataset %>% filter(latitude>=-90))
-  clean_dataset <- data.frame(clean_dataset %>% filter(longitude<=180))
-  clean_dataset <- data.frame(clean_dataset %>% filter(longitude>=-180))
-  return(clean_dataset)
-}
-
-#' Remove NAs from countries
-#'
-#' @param dataset
-#'
-#' @return
-#' @export
-#'
-#' @examples
-removeNACountries <- function(dataset) {
-  clean_dataset <- data.frame(dataset %>% filter(!is.na(country)))
-  return(clean_dataset)
+  coordinates_dataset <- data.frame(dataset %>% group_by(longitude,latitude) %>% summarize(times=n()))
+  return(coordinates_dataset)
 }
 
 #' Group countries
@@ -90,32 +61,24 @@ removeNACountries <- function(dataset) {
 #'
 #' @examples
 groupCountries <- function(dataset) {
-  grouped_countries <- data.frame(dataset %>% group_by(country) %>% summarize(times=n()))
-  return(grouped_countries)
+  countries_dataset <- data.frame(dataset %>% group_by(cc) %>% summarize(times=n()))
+  pop <- getPopulation()
+  countries_population_dataset <- merge(countries_dataset, pop, by="cc")
+  countries_population_dataset$attacks_population <- countries_population_dataset$times/countries_population_dataset$population
+  return(countries_population_dataset)
 }
 
-#' Rewrite some country names
-#'
-#' @param grouped_countries
+#' Get Population Dataframe
 #'
 #' @return
 #' @export
 #'
 #' @examples
-rewriteCountries <- function(grouped_countries) {
-  grouped_countries <- grouped_countries %>% mutate(
-    country = if_else(country == "Antigua and Barbuda", 'Antigua',
-                      if_else(country == "British Virgin Islands", 'Virgin Islands',
-                              if_else(country == "Czechia", 'Czech Republic',
-                                      if_else(country == "Hong Kong", 'China',
-                                              if_else(country == "Macao", 'China',
-                                                      if_else(country == "Myanmar [Burma]", 'Myanmar',
-                                                              if_else(country == "Saint Vincent and the Grenadines", 'Saint Vincent',
-                                                                      if_else(country == "Trinidad and Tobago", 'Trinidad',
-                                                                              if_else(country == "United Kingdom", 'UK',
-                                                                                      if_else(country == "United States", 'USA', country)
-                                                                              ))))))))))
-  return(grouped_countries)
+getPopulation <- function() {
+  world_data <- getMap()
+  population <- setNames(data.frame(world_data$ISO_A2,world_data$POP_EST),c('cc','population'))
+  population <- subset(population,population>0 & cc!='-99')
+  return(population)
 }
 
 #' Coordinates Map
@@ -126,12 +89,11 @@ rewriteCountries <- function(grouped_countries) {
 #' @export
 #'
 #' @examples
-coordinatesMap <- function(cc2) {
-  world_data <- map_data('world')
-  world <- ggplot() + borders("world", colour="#D7D7D7", fill="#CBCBCB") + theme_map()
-  map_coordinates <- world +
-    geom_point(aes(x = longitude, y = latitude, size = times), data = cc2, colour = '#0000FF', alpha = .25)
-
+coordinatesMap <- function(coordinates_dataset) {
+  coordinates_map <- getMap()
+  plot(coordinates_map)
+  points(coordinates_dataset$longitude,coordinates_dataset$latitude, col = rgb(red = 1, green = 0, blue = 0, alpha = 0.6),
+         pch = 16, cex = 6*(coordinates_dataset$times/max(coordinates_dataset$times)))
 }
 
 #' Countries Map
@@ -142,21 +104,26 @@ coordinatesMap <- function(cc2) {
 #' @export
 #'
 #' @examples
-countriesMap <- function(grouped_countries) {
-  world_data <- map_data('world')
-  world <- ggplot() + borders("world", colour="#D7D7D7", fill="#CBCBCB") + theme_map()
-  countries_mid <- mean(grouped_countries$times)
-  map_countries <- world +
-    geom_map(aes(fill = times, map_id = country),
-             map = world_data, data = grouped_countries) +
-    scale_fill_gradient2(name = "Times/Country",
-                         mid = "#FFFF00", high = "#FF0000") + borders("world", colour="#D7D7D7")
-  complete_map <- world +
-    geom_map(aes(fill = times, map_id = country),
-             map = world_data, data = grouped_countries) +
-    scale_fill_gradient2(name = "Times/Country", low = "blue", mid = "yellow",
-                         high = "red") +
-    geom_point(aes(x = longitude, y = latitude, size = times), data = cc2, colour = 'blue', alpha = .25)
+countriesMap <- function(countries_dataset) {
+  mapped_data <- joinCountryData2Map(countries_dataset, joinCode = "ISO2",
+                                     nameJoinColumn = "cc")
+  mapCountryData(mapped_data, nameColumnToPlot = "times",
+                 mapTitle = "Mapa de calor de los países atacantes", catMethod = "pretty",
+                 colourPalette = "heat")
+}
 
-
+#' Countries Map (attacks/population)
+#'
+#' @param countries_dataset
+#'
+#' @return
+#' @export
+#'
+#' @examples
+countriesMapNorm <- function(countries_dataset) {
+  mapped_data <- joinCountryData2Map(countries_dataset, joinCode = "ISO2",
+                                     nameJoinColumn = "cc")
+  mapCountryData(mapped_data, nameColumnToPlot = "attacks_population",
+                 mapTitle = "Mapa de calor de los países atacantes (normalizado)", catMethod = "pretty",
+                 colourPalette = "heat")
 }
