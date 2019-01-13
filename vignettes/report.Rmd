@@ -22,24 +22,21 @@ En la siguiente tabla podemos observar un ejemplo de tres de los ataques más so
 
 Año de descubrimiento  | Nombre | Tipo | Descripción
 ------ | ---------- | ---------- | -------------------------------------
-2017      | WannaCry    | Ransomware | Afectados >200.000 ordenadores en 150 paises
+2017      | WannaCry    | Ransomware | Afectados >200.000 ordenadores en 150 países
 2016      | Mirai  | Botnet | Afectados multitud de dispositivos IoT, para DDoS a servidores DNS
 2010      | Stuxnet    | Gusano | Reprogramación de sistemas SCADA
 
-~~En 2017 se produjo el WannaCry, ransomware que afectó a más de 200.000 ordenadores en 150 paises~~
-
-~~En 2016 se hizo uso de Mirai, botnet destinada a infectar dispositivos IoT, con el fin de realizar un DDoS a servidores DNS~~
-
-~~En 2010 se descubrió el Stuxnet, gusano que era capaz de reprogramar sistemas SCADA~~
-
 En los últimos años se ha sospechado que hay ciertas regiones del mundo que son origen de la mayoría de ataques que se producen en el resto del planeta. Quizás si se pudiera concretar los paises que más ataques generan, se podrían tomar medidas cautelares, entre otro tipo de acciones.
-
 
 ## 1.1. Pregunta a resolver
 
 En base a esto, hemos pensado que sería interesante saber los ataques que produce cada país, para saber si hay alguno o algunos cuya cantidad de ataques sobresalga por encima de todos los demás y poder concluir si las sospechas de estos últimos años son ciertas.
 
-Por ello, la pregunta que vamos a buscar resolver en este documento es la siguiente: **¿qué países son originarios de la mayor cantidad de ciberataques a nivel mundial?**
+Por ello, la pregunta que en un principio íbamos a buscar resolver en este documento era la siguiente: *¿qué países son originarios de la mayor cantidad de ciberataques a nivel mundial?*
+
+Sin embargo, pensando en esa incógnita nos ha surgido una pregunta aún más interesate: **¿qué países son originarios de la mayor cantidad de ciberataques a nivel mundial, teniendo en cuenta el tamaño de la población de cada país?** 
+
+Presuponemos que hay ciertos países que seguro que aparecen en el top de países originarios de ataques, pero esta situación podría ser perfectamente normal ya que son países con mucha población, y por estadística debe haber más ataques que en otros países. Ahora bien, teniendo en cuenta el ratio "número de ataques" / "población del país", ¿seguirán esos países en el top?
 
 ## 1.2. Dataset 
 
@@ -47,6 +44,11 @@ Para llevar a cabo el análisis, necesitábamos un dataset que recogiese informa
 
 Finalmente, hemos encontrado este [dataset](http://datadrivensecurity.info/blog/pages/dds-dataset-collection.html) con información de 2013 sobre ataques que han captado un conjunto de AWS honeypots repartidas por el globo terrestre.
 
+## 1.3. Botnets y honeypots
+
+Las botnet son una herramienta que utilizan los crackers (hackers malos) consistente en un conjunto de bots repartidos por todo el planeta. Estos bots pueden ser cualquier dispositivo conectado a internet y que haya sido infectado: desde un ordenador, una smartTV, un coche, hasta un frigorífico.
+
+Una honeypot es una herramienta de ciberseguridad utilizada para simular un sistema real con el fin de engañar a la botnet, que ésta ataque a la simulación en vez de al sistema real, y así obtener información de la botnet y del atacante.
 
 >   A un panal de rica miel
 >
@@ -67,7 +69,6 @@ El primer paso a llevar a cabo para el análisis de la información es la descar
 
 ```{r download_dataset}
 dataset <- GroupAssignmentPackage::downloadDataset()
-
 ```
 
 Tras obtener los datos, podemos ver que el dataset tiene cantidad de información útil de los ataques: fecha y hora, honeypot a la que ha atacado, ip del atacante, país del atacante y coordenadas del país.
@@ -76,25 +77,33 @@ Tras obtener los datos, podemos ver que el dataset tiene cantidad de informació
 str(dataset)
 ```
 
+Sin embargo, para mayor comodidad a la hora de trabajar con el dataset, hemos hecho una selección de la información con la que vamos a trabajar.
+
+```{r, include=FALSE}
+# TODO
+# head(10) de la tabla con la que te quedas sólo 5 columnas
+```
+
 ## 2.2. Honeypots
 
-Concretamente, el dataset contiene información de los ataques que reciben nueve honeypots repartidos por el mundo.
+Extrapolando la información del dataset, podemos concretar que la información que contiene el mismo es la relativa a ataques que han recibido varias honeypots repartidas por el mundo.
 
+Las honeypots que nos encontramos son las siguientes:
 
 ```{r list_honeypots, echo=FALSE}
 levels(dataset$host)
 ```
 
-No tenemos información exacta de dónde se encuentran las honeypots, pero por sus nombres podemos deducir que efectivamente, está repartidas por todo el globo terrestre.
+Podemos ver que son un total de nueve honeypots. No tenemos información exacta de dónde se encuentran, pero por sus nombres podemos deducir que, efectivamente, están repartidas por todo el globo terrestre.
 
-El número de ataques recibidos por cada honeypot es el siguiente.
+Empezando a analizar el dataset, la primera incógnita a la que quisimos darle solución es qué honeypot recibió más ataques, pues por proximidad geográfica se podría empezar a deducir qué región era la más agresiva del planeta. El número de ataques recibidos por cada honeypot es el que se indica a continuación.
 
 ```{r honeypots_attacks, echo=FALSE}
 honeypots_attacks <- GroupAssignmentPackage::host_attacks(dataset)
 honeypots_attacks[order(-honeypots_attacks$attacks),]
 ```
 
-Podemos obervar que las honeypots que más ataques reciben son las 
+Podemos obervar que las primera y tercera honeypots que más ataques reciben están en Asia, por lo que se empiezan a cumplir las sospechas iniciales de que los países con más población son los que más ataques generan.
 
 ## 2.3. Países
 
@@ -102,7 +111,7 @@ Podemos obervar que las honeypots que más ataques reciben son las
 clean_dataset <- GroupAssignmentPackage::cleanDataset(dataset)
 countries_dataset <- GroupAssignmentPackage::groupCountries(clean_dataset)
 ```
-El dataset nos proporciona un listado bastante extenso sobre países del mundo en los que se originan ataques. A continuación podemos ver el listado completo:
+El dataset nos proporciona un listado bastante extenso sobre países del mundo en los que se originan ataques. El listado completo del mismo se encuentra en el Anexo 1.
 
 Los países en los que se generan más ataques son: 
 
@@ -126,22 +135,27 @@ top10_countries_attacks
 
 ```
 
-Podemos observar que hay un atacante que está claramente en primer lugar: China. En segundo lugar nos encontramos con Estados Unidos, que también está bastante alejado del tercer puesto, Japón. En sucesivos puestos nos encontramos con Irán, Taiwan, Países Bajos, India, Corea, Vietnam y Rusia.
+Podemos observar que hay un atacante que está claramente en primer lugar: China. En segundo lugar nos encontramos con Estados Unidos, que también está bastante alejado del tercer puesto, Japón. En sucesivos puestos nos encontramos con Irán, Taiwán, Países Bajos, India, Corea, Vietnam y Rusia, que están bastante próximos entre sí.
 
-A continuación, podemos observar un gráfico de barras con el Top 10 de atacantes:
+A continuación, podemos ver la presentación de un gráfico de barras con los diez países que más ataques han realizado.
 
-```{r top_countries_chart, echo = FALSE}
+```{r top_countries_chart, echo = FALSE, fig.width = 8, fig.height = 12, fig.align = "center", out.width = "50%", out.height="20%"}
 top10_countries_attacks_plot <- top10_countries_attacks[order(top10_countries_attacks$attacks),]
 barplot(top10_countries_attacks_plot$attacks, names = top10_countries_attacks_plot$country, horiz=TRUE,
-  xlab = "Attacks", ylab = "Countries",
-  main = "Top 10")
+  xlab = "Número de ataques", ylab = "Países",
+  main = "Top 10 de países que más ataques realizan", cex.lab=1.5, cex.main=1.5)
 ```
 
 ## 2.4. Gráficos con mapa mundial
 
-Para mostrar el análisis de una forma más visual, hemos hecho uso de un mapa en blanco con todos los países del mundo perfectamente delimitados.
+```{r, include=FALSE}
+# TODO
+# Modificar los títulos y las leyendas
+```
 
-```{r empty_map, echo = FALSE}
+En los apartados sucesivos, vamos a mostrar de forma más visual datos sobre los países atacantes, gracias a este mapa en blanco con todos los países del mundo perfectamente delimitados.
+
+```{r empty_map, echo = FALSE, fig.width = 8, fig.height = 8, fig.align = "center"}
 world_map <- getMap()
 plot(world_map)
 
@@ -149,51 +163,90 @@ plot(world_map)
 
 ## 2.4.1. Mapa de puntos
 
-Gracias a que el dataset contiene información sobre las coordenadas de los atacantes, hemos podido representar el mapa de puntos que se muestra a continuación.
+En el mapa de puntos que se muestra a continuación, representamos cada IP diferente que se encuentra en el dataset como un punto en el mapa. Los puntos más grandes simbolizan que desde esa IP se han realizado multitud de ataques.
 
-```{r coordinates_map, echo = FALSE}
+```{r coordinates_map, echo = FALSE, fig.width = 8, fig.height = 8, fig.align = "center"}
 coordinates_dataset <- GroupAssignmentPackage::groupCoordinates(clean_dataset)
 GroupAssignmentPackage::coordinatesMap(coordinates_dataset)
 ```
 
+Observamos que es desde una región de Asia desde la que más ataques se producen, como bien mostraba el Top 10 de países atacantes.
 
 ## 2.4.2. Mapa de calor
 
-Haciendo uso de los países de los atacantes, hemos podido generar este mapa de calor. El rojo más intenso representa los países que más ataques han generado, el amarillo menos intenso representan a los que menos. Los países en blanco representan que no se ha recibido ningún ataque desde esa región.
+Haciendo uso de la información relativa a los países, hemos podido generar este mapa de calor. El rojo más intenso representa los países que más ataques han generado, el amarillo menos intenso representa a los que menos. Los países en blanco representan que no se ha originado ningún ataque desde esa región, como por ejemplo Groenlandia, Namibia (África) o Papúa Nueva Guinea (Oceanía).
 
-```{r countries_map, echo = FALSE, message=FALSE, warning=FALSE}
+```{r countries_map, echo = FALSE, message=FALSE, warning=FALSE, fig.width = 8, fig.height = 8, fig.align = "center"}
 GroupAssignmentPackage::countriesMap(countries_dataset)
 
 ```
 
+Se muestra que, efectivamente, es desde China y desde Estados Unidos desde donde se realizan más ataques.
 
-## 2.4.3. Mapa de calor (normalizado por población)
-```{r countries_map_norm, echo = FALSE, message=FALSE, warning=FALSE}
-GroupAssignmentPackage::countriesMapNorm(countries_dataset)
+## 2.4.3. Mapa de calor normalizado por población
 
-```
+Una vez que tenemos la información relativa a los ataques de cada región y obteniendo la población de cada región (anexo 2), podemos establecer qué regiones son las que más atacan por habitante (anexo 3). 
 
-```{r countries_attacks_norm, echo = FALSE}
+Seguidamentre se muestra el Top 10 de estos países:
+
+```{r countries_attacks_norm, echo = FALSE, fig.width = 8, fig.height = 14, fig.align = "center", out.width = "50%", out.height="30%"}
 countries_attacks_norm <- countries_dataset[c("country","attacks_population")]
 top10_countries_norm <- head(countries_attacks_norm[order(-countries_attacks_norm$attacks_population),],10)
 top10_countries_norm
 top10_countries_norm_plot <- top10_countries_norm[order(top10_countries_norm$attacks),]
 barplot(top10_countries_norm_plot$attacks_population, names = top10_countries_norm_plot$country, horiz=TRUE,
   xlab = "Attacks", ylab = "Countries",
-  main = "Top 10")
+  main = "Top 10", cex.lab=1.5, cex.main=1.5)
+```
+
+Sorprendentemente, es Islandia el país que más ataques realiza por habitante: 1 ataque por cada 240 habitantes. 
+
+Los únicos países que se encuentran tanto en el Top 10 normalizado como en el Top 10 sin normalizar son: Estados Unidos, Taiwán y Países Bajos.
+
+A continuación, mostramos el mapa de calor en base a este Top 10 normalizado de atacantes.
+
+```{r countries_map_norm, echo = FALSE, message=FALSE, warning=FALSE, fig.width = 8, fig.height = 8, fig.align = "center"}
+GroupAssignmentPackage::countriesMapNorm(countries_dataset)
+
 ```
 
 
 
 # 3. Conclusiones y preguntas futuras
 
+Empezamos esta investigación con la sospecha 
+
 - Afirmar o desmentir que hay países que claramente son atacantes
 
 - Preguntas futuras: normalizar los datos para ver atacantes según población. Necesario otro dataset con
 
+Podemos obervar que la honeypot que más ataques recibe está en Asia, por lo que se empiezan a cumplir las sospechas iniciales de que los países con más población son los que más ataques generan.
+
+Podemos observar que hay un atacante que está claramente en primer lugar: China. En segundo lugar nos encontramos con Estados Unidos, que también está bastante alejado del tercer puesto, Japón.
+
 
 # 4. Anexo
-Tabla con todos los paises acatantes ordenados alfabéticamente y su número de ataques
+
+## 4.1. Anexo 1
+
+Todos los países atacantes ordenados alfabéticamente y su número de ataques.
 ```{r countries_attacks, echo = FALSE}
 countries_attacks[order(countries_attacks$country),]
 ```
+
+## 4.2. Anexo 2
+
+Población total de cada uno de los países.
+```{r, include=FALSE}
+# TODO
+# Tabla completa con los países y su número total de habitantes, ordenado por número de habitantes
+```
+
+## 4.3. Anexo 3
+
+Todos los países atacantes con su ratio relativo de ataques/habitantes.
+```{r, include=FALSE}
+# TODO
+# Tabla completa con los países y su número total de habitantes, ordenado por el resultado ataques/habitantes
+```
+
