@@ -9,19 +9,14 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```{r setup, include=FALSE}
 library(GroupAssignmentPackage)
-#source("../R/code.R")
-#GroupAssignmentPackage::sample_function()
-#GroupAssignmentPackage::LoadLibraries()
-#df <- getSourceData()
-#nfilas <- nrow(df)
+GroupAssignmentPackage::loadDependencies()
 ```
 
 # 1. Introducción
 
-Hoy día, en el mundo se producen cientos de miles de ciberataques cada segundo. La mayor parte de ataques que se generan no tienen ningún tipo de repercusión mediática ni social, pues la mayoría son ataques pequeños que producen pocos daños y están diseñados para afectar a personas de forma individual (por ejemplo, phising o spam); pero en esta última década cada vez más se producen ataques globales con consecuencias nefastas para empresas, gobiernos, etc.
+Hoy en día, en el mundo se producen cientos de miles de ciberataques cada segundo. La mayor parte de ellos no tienen ningún tipo de repercusión mediática ni social, pues son ataques pequeños que producen pocos daños y están diseñados para afectar a personas de forma individual (por ejemplo, phishing o spam); pero en esta última década cada vez más se producen ataques globales con consecuencias críticas para empresas, gobiernos, etc.
 
 En la siguiente tabla podemos observar un ejemplo de tres de los ataques más sonados de los últimos tiempos.
 
@@ -70,20 +65,15 @@ Finalmente, hemos encontrado este [dataset](http://datadrivensecurity.info/blog/
 
 El primer paso a llevar a cabo para el análisis de la información es la descarga de los datos desde la [web](http://datadrivensecurity.info/blog/data/2014/01/marx-geo.tar.gz), junto a la posterior transformación a dataset para poder interactuar con ellos en R.
 
-```{r, include = FALSE}
-# Función/Funciones que obtengan el csv de la web, transformación a csv y obtención de dataset para poder jugar con la información.
-
-# Insert code here
+```{r download_dataset}
+dataset <- GroupAssignmentPackage::downloadDataset()
 
 ```
 
-Tras obtener los datos, podemos ver que el dataset tiene cantidad de información útil de los ataques: fecha, hora, honeypot a la que ha atacado, ip del atacante, país del atacante y coordenadas del país.
+Tras obtener los datos, podemos ver que el dataset tiene cantidad de información útil de los ataques: fecha y hora, honeypot a la que ha atacado, ip del atacante, país del atacante y coordenadas del país.
 
-```{r, include = FALSE}
-# head(dataset), para mostrar un ejemplo de la estructura
-
-# Insert code here
-
+```{r str_dataset, echo=FALSE}
+str(dataset)
 ```
 
 ## 2.2. Honeypots
@@ -91,40 +81,35 @@ Tras obtener los datos, podemos ver que el dataset tiene cantidad de informació
 Concretamente, el dataset contiene información de los ataques que reciben nueve honeypots repartidos por el mundo.
 
 
-```{r, include = FALSE}
-# Tabla con las 9 honeypots
-
-# Insert code here
-
+```{r list_honeypots, echo=FALSE}
+levels(dataset$host)
 ```
 
 No tenemos información exacta de dónde se encuentran las honeypots, pero por sus nombres podemos deducir que efectivamente, está repartidas por todo el globo terrestre.
 
 El número de ataques recibidos por cada honeypot es el siguiente.
 
-```{r, include = FALSE}
-# Número de ataques recibido por cada honeypot
-
-# Insert code here
-
+```{r honeypots_attacks, echo=FALSE}
+honeypots_attacks <- GroupAssignmentPackage::host_attacks(dataset)
+honeypots_attacks[order(-honeypots_attacks$attacks),]
 ```
 
 Podemos obervar que las honeypots que más ataques reciben son las 
 
 ## 2.3. Países
 
-El dataset nos proporciona un listado bastante extenso sobre países del mundo en los que se originan ataques. A continuación podemos ver el listado completo:
-
-```{r, include = FALSE}
-# Tabla de todos los países atacantes (orden alfabético) y número de ataques por país
-
-# Insert code here
-
+```{r countries_setup, include = FALSE}
+clean_dataset <- GroupAssignmentPackage::cleanDataset(dataset)
+countries_dataset <- GroupAssignmentPackage::groupCountries(clean_dataset)
 ```
+El dataset nos proporciona un listado bastante extenso sobre países del mundo en los que se originan ataques. A continuación podemos ver el listado completo:
 
 Los países en los que se generan más ataques son: 
 
-```{r, include = FALSE}
+```{r top_countries_table, echo = FALSE}
+countries_attacks <- countries_dataset[c("country","attacks")]
+top10_countries_attacks <- head(countries_attacks[order(-countries_attacks$attacks),],10)
+top10_countries_attacks
 # TABLA Top 10 atacantes
 # Quizás Top 10 sea mucho (se vea regular el gráfico) y haya que poner un TOP menor. O la inversa, si el TOP 11 y 12 atacan mucho, lo mismo hay que incluirlos
 #35  CN 191394
@@ -145,43 +130,30 @@ Podemos observar que hay un atacante que está claramente en primer lugar: China
 
 A continuación, podemos observar un gráfico de barras con el Top 10 de atacantes:
 
-```{r, include = FALSE}
-# GRÁFICO DE BARRAS Top 10 atacantes
-# Quizás Top 10 sea mucho (se vea regular el gráfico) y haya que poner un TOP menor. O la inversa, si el TOP 11 y 12 atacan mucho, lo mismo hay que incluirlos
-#35  CN 191394
-#164 US  90005
-#84  JP  17204
-#78  IR  13042
-#160 TW  12150
-#122 NL  10739
-#76  IN   9418
-#88  KR   9316
-#170 VN   7826
-#140 RU   7211
-# Insert code here
-
+```{r top_countries_chart, echo = FALSE}
+top10_countries_attacks_plot <- top10_countries_attacks[order(top10_countries_attacks$attacks),]
+barplot(top10_countries_attacks_plot$attacks, names = top10_countries_attacks_plot$country, horiz=TRUE,
+  xlab = "Attacks", ylab = "Countries",
+  main = "Top 10")
 ```
 
 ## 2.4. Gráficos con mapa mundial
 
 Para mostrar el análisis de una forma más visual, hemos hecho uso de un mapa en blanco con todos los países del mundo perfectamente delimitados.
 
-```{r, include = FALSE}
-# Imagen del mapa en blanco, con los países delimitados
-
-# Insert code here
+```{r empty_map, echo = FALSE}
+world_map <- getMap()
+plot(world_map)
 
 ```
 
 ## 2.4.1. Mapa de puntos
 
-Gracias a que el dataset contiene información sobre las coordenadas de los atacantes, hemos podido representar sin excesiva dificultad el mapa de puntos que se muestra a continuación.
+Gracias a que el dataset contiene información sobre las coordenadas de los atacantes, hemos podido representar el mapa de puntos que se muestra a continuación.
 
-```{r, include = FALSE}
-# Cualquier transformación de datos que hayas tenido que hacer desde el dataset normalizado que devuelve getSourceData hasta la obtención de este gráfico
-
-# Insert code here
-
+```{r coordinates_map, echo = FALSE}
+coordinates_dataset <- GroupAssignmentPackage::groupCoordinates(clean_dataset)
+GroupAssignmentPackage::coordinatesMap(coordinates_dataset)
 ```
 
 
@@ -189,15 +161,39 @@ Gracias a que el dataset contiene información sobre las coordenadas de los atac
 
 Haciendo uso de los países de los atacantes, hemos podido generar este mapa de calor. El rojo más intenso representa los países que más ataques han generado, el amarillo menos intenso representan a los que menos. Los países en blanco representan que no se ha recibido ningún ataque desde esa región.
 
-```{r, include = FALSE}
-# Cualquier transformación de datos que hayas tenido que hacer desde el dataset normalizado que devuelve getSourceData hasta la obtención de este gráfico
-
-# Insert code here
+```{r countries_map, echo = FALSE, message=FALSE, warning=FALSE}
+GroupAssignmentPackage::countriesMap(countries_dataset)
 
 ```
+
+
+## 2.4.3. Mapa de calor (normalizado por población)
+```{r countries_map_norm, echo = FALSE, message=FALSE, warning=FALSE}
+GroupAssignmentPackage::countriesMapNorm(countries_dataset)
+
+```
+
+```{r countries_attacks_norm, echo = FALSE}
+countries_attacks_norm <- countries_dataset[c("country","attacks_population")]
+top10_countries_norm <- head(countries_attacks_norm[order(-countries_attacks_norm$attacks_population),],10)
+top10_countries_norm
+top10_countries_norm_plot <- top10_countries_norm[order(top10_countries_norm$attacks),]
+barplot(top10_countries_norm_plot$attacks_population, names = top10_countries_norm_plot$country, horiz=TRUE,
+  xlab = "Attacks", ylab = "Countries",
+  main = "Top 10")
+```
+
+
 
 # 3. Conclusiones y preguntas futuras
 
 - Afirmar o desmentir que hay países que claramente son atacantes
 
 - Preguntas futuras: normalizar los datos para ver atacantes según población. Necesario otro dataset con
+
+
+# 4. Anexo
+Tabla con todos los paises acatantes ordenados alfabéticamente y su número de ataques
+```{r countries_attacks, echo = FALSE}
+countries_attacks[order(countries_attacks$country),]
+```
