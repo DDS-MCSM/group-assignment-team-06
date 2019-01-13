@@ -38,9 +38,10 @@ downloadDataset <- function() {
 #'
 #' @examples
 cleanDataset <- function(dataset) {
-  useful_vars <- c("datetime","cc","country","latitude","longitude")
+  useful_vars <- c("datetime","host","cc","country","latitude","longitude")
   clean_dataset <- dataset[useful_vars]
   clean_dataset$datetime <- as.Date(clean_dataset$datetime, format = "%Y-%m-%d")
+  clean_dataset <- data.frame(clean_dataset %>% filter(!is.na(host)))
   clean_dataset <- data.frame(clean_dataset %>% filter(!is.na(latitude) & !is.na(longitude)))
   clean_dataset <- data.frame(clean_dataset %>% filter(!is.na(cc)))
   clean_dataset <- data.frame(clean_dataset %>% filter(latitude<=90))
@@ -102,7 +103,7 @@ getPopulation <- function() {
 #' @examples
 coordinatesMap <- function(coordinates_dataset) {
   coordinates_map <- getMap()
-  plot(coordinates_map)
+  plot(coordinates_map, main="Mapa de puntos - Número de ataques por IP")
   points(coordinates_dataset$longitude,coordinates_dataset$latitude, col = rgb(red = 1, green = 0, blue = 0, alpha = 0.6),
          pch = 16, cex = 6*(coordinates_dataset$attacks/max(coordinates_dataset$attacks)))
 }
@@ -119,8 +120,8 @@ countriesMap <- function(countries_dataset) {
   mapped_data <- joinCountryData2Map(countries_dataset, joinCode = "ISO2",
                                      nameJoinColumn = "cc")
   mapCountryData(mapped_data, nameColumnToPlot = "attacks",
-                 mapTitle = "Mapa de calor de los países atacantes", catMethod = "pretty",
-                 colourPalette = "heat")
+                 mapTitle = "Mapa de calor - Número de ataques por país", catMethod = "pretty",
+                 colourPalette = "heat", numCats = length(table(countries_dataset$attacks)))
 }
 
 #' Countries Map (attacks/population)
@@ -135,8 +136,8 @@ countriesMapNorm <- function(countries_dataset) {
   mapped_data <- joinCountryData2Map(countries_dataset, joinCode = "ISO2",
                                      nameJoinColumn = "cc")
   mapCountryData(mapped_data, nameColumnToPlot = "attacks_population",
-                 mapTitle = "Mapa de calor de los países atacantes (normalizado)", catMethod = "pretty",
-                 colourPalette = "heat")
+                 mapTitle = "Mapa de calor - Número de ataques por país normalizado", catMethod = "pretty",
+                 colourPalette = "heat", numCats = length(table(countries_dataset$attacks_population)))
 }
 
 #' Host attacks
@@ -148,7 +149,6 @@ countriesMapNorm <- function(countries_dataset) {
 #'
 #' @examples
 host_attacks <- function(dataset) {
-  hosts <- data.frame(dataset %>% filter(!is.na(host)))
-  hosts <- data.frame(hosts %>% group_by(host) %>% summarize(attacks=n()))
+  hosts <- data.frame(dataset %>% group_by(host) %>% summarize(attacks=n()))
   return(hosts)
 }

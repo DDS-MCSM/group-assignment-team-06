@@ -79,9 +79,9 @@ str(dataset)
 
 Sin embargo, para mayor comodidad a la hora de trabajar con el dataset, hemos hecho una selección de la información con la que vamos a trabajar.
 
-```{r, include=FALSE}
-# TODO
-# head(10) de la tabla con la que te quedas sólo 5 columnas
+```{r clean_dataset, echo=FALSE}
+clean_dataset <- GroupAssignmentPackage::cleanDataset(dataset)
+str(clean_dataset)
 ```
 
 ## 2.2. Honeypots
@@ -91,7 +91,7 @@ Extrapolando la información del dataset, podemos concretar que la información 
 Las honeypots que nos encontramos son las siguientes:
 
 ```{r list_honeypots, echo=FALSE}
-levels(dataset$host)
+levels(clean_dataset$host)
 ```
 
 Podemos ver que son un total de nueve honeypots. No tenemos información exacta de dónde se encuentran, pero por sus nombres podemos deducir que, efectivamente, están repartidas por todo el globo terrestre.
@@ -99,7 +99,7 @@ Podemos ver que son un total de nueve honeypots. No tenemos información exacta 
 Empezando a analizar el dataset, la primera incógnita a la que quisimos darle solución es qué honeypot recibió más ataques, pues por proximidad geográfica se podría empezar a deducir qué región era la más agresiva del planeta. El número de ataques recibidos por cada honeypot es el que se indica a continuación.
 
 ```{r honeypots_attacks, echo=FALSE}
-honeypots_attacks <- GroupAssignmentPackage::host_attacks(dataset)
+honeypots_attacks <- GroupAssignmentPackage::host_attacks(clean_dataset)
 honeypots_attacks[order(-honeypots_attacks$attacks),]
 ```
 
@@ -108,7 +108,6 @@ Podemos obervar que las primera y tercera honeypots que más ataques reciben est
 ## 2.3. Países
 
 ```{r countries_setup, include = FALSE}
-clean_dataset <- GroupAssignmentPackage::cleanDataset(dataset)
 countries_dataset <- GroupAssignmentPackage::groupCountries(clean_dataset)
 ```
 El dataset nos proporciona un listado bastante extenso sobre países del mundo en los que se originan ataques. El listado completo del mismo se encuentra en el Anexo 1.
@@ -119,20 +118,6 @@ Los países en los que se generan más ataques son:
 countries_attacks <- countries_dataset[c("country","attacks")]
 top10_countries_attacks <- head(countries_attacks[order(-countries_attacks$attacks),],10)
 top10_countries_attacks
-# TABLA Top 10 atacantes
-# Quizás Top 10 sea mucho (se vea regular el gráfico) y haya que poner un TOP menor. O la inversa, si el TOP 11 y 12 atacan mucho, lo mismo hay que incluirlos
-#35  CN 191394
-#164 US  90005
-#84  JP  17204
-#78  IR  13042
-#160 TW  12150
-#122 NL  10739
-#76  IN   9418
-#88  KR   9316
-#170 VN   7826
-#140 RU   7211
-# Insert code here
-
 ```
 
 Podemos observar que hay un atacante que está claramente en primer lugar: China. En segundo lugar nos encontramos con Estados Unidos, que también está bastante alejado del tercer puesto, Japón. En sucesivos puestos nos encontramos con Irán, Taiwán, Países Bajos, India, Corea, Vietnam y Rusia, que están bastante próximos entre sí.
@@ -142,22 +127,17 @@ A continuación, podemos ver la presentación de un gráfico de barras con los d
 ```{r top_countries_chart, echo = FALSE, fig.width = 8, fig.height = 12, fig.align = "center", out.width = "50%", out.height="20%"}
 top10_countries_attacks_plot <- top10_countries_attacks[order(top10_countries_attacks$attacks),]
 barplot(top10_countries_attacks_plot$attacks, names = top10_countries_attacks_plot$country, horiz=TRUE,
-  xlab = "Número de ataques", ylab = "Países",
-  main = "Top 10 de países que más ataques realizan", cex.lab=1.5, cex.main=1.5)
+  xlab = "Ataques", ylab = "Países",
+  main = "Top 10 de países: Ataques", cex.lab=1.5, cex.main=1.5)
 ```
 
 ## 2.4. Gráficos con mapa mundial
-
-```{r, include=FALSE}
-# TODO
-# Modificar los títulos y las leyendas
-```
 
 En los apartados sucesivos, vamos a mostrar de forma más visual datos sobre los países atacantes, gracias a este mapa en blanco con todos los países del mundo perfectamente delimitados.
 
 ```{r empty_map, echo = FALSE, fig.width = 8, fig.height = 8, fig.align = "center"}
 world_map <- getMap()
-plot(world_map)
+plot(world_map, main="Mapa en blanco")
 
 ```
 
@@ -178,7 +158,6 @@ Haciendo uso de la información relativa a los países, hemos podido generar est
 
 ```{r countries_map, echo = FALSE, message=FALSE, warning=FALSE, fig.width = 8, fig.height = 8, fig.align = "center"}
 GroupAssignmentPackage::countriesMap(countries_dataset)
-
 ```
 
 Se muestra que, efectivamente, es desde China y desde Estados Unidos desde donde se realizan más ataques.
@@ -195,19 +174,18 @@ top10_countries_norm <- head(countries_attacks_norm[order(-countries_attacks_nor
 top10_countries_norm
 top10_countries_norm_plot <- top10_countries_norm[order(top10_countries_norm$attacks),]
 barplot(top10_countries_norm_plot$attacks_population, names = top10_countries_norm_plot$country, horiz=TRUE,
-  xlab = "Attacks", ylab = "Countries",
-  main = "Top 10", cex.lab=1.5, cex.main=1.5)
+  xlab = "Ataques/Población", ylab = "Países",
+  main = "Top 10 de países: Ataques/población", cex.lab=1.5, cex.main=1.5)
 ```
 
 Sorprendentemente, es Islandia el país que más ataques realiza por habitante: 1 ataque por cada 240 habitantes. 
 
 Los únicos países que se encuentran tanto en el Top 10 normalizado como en el Top 10 sin normalizar son: Estados Unidos, Taiwán y Países Bajos.
 
-A continuación, mostramos el mapa de calor en base a este Top 10 normalizado de atacantes.
+A continuación, mostramos el mapa de calor en base a esta relación entre ataques y población.
 
 ```{r countries_map_norm, echo = FALSE, message=FALSE, warning=FALSE, fig.width = 8, fig.height = 8, fig.align = "center"}
 GroupAssignmentPackage::countriesMapNorm(countries_dataset)
-
 ```
 
 
@@ -237,16 +215,16 @@ countries_attacks[order(countries_attacks$country),]
 ## 4.2. Anexo 2
 
 Población total de cada uno de los países.
-```{r, include=FALSE}
-# TODO
-# Tabla completa con los países y su número total de habitantes, ordenado por número de habitantes
+```{r countries_population, echo=FALSE}
+countries_population <- countries_dataset[c("country","population")]
+countries_population[order(countries_population$country),]
 ```
 
 ## 4.3. Anexo 3
 
 Todos los países atacantes con su ratio relativo de ataques/habitantes.
-```{r, include=FALSE}
-# TODO
-# Tabla completa con los países y su número total de habitantes, ordenado por el resultado ataques/habitantes
+```{r countries_attacks_population, echo=FALSE}
+countries_attacks_population <- countries_dataset[c("country","attacks_population")]
+countries_attacks_population[order(countries_attacks_population$country),]
 ```
 
